@@ -1,9 +1,9 @@
 services:
 
   tempo:
-    image: grafana/tempo:latest
+    image: grafana/tempo:2.10.1
     volumes:
-      - ./shared/tempo:/etc
+      - ./shared/tempo/tempo.yml:/etc/tempo.yml
       - ./tempo-data:/var/tempo
     ports:
       - "3200:3200"

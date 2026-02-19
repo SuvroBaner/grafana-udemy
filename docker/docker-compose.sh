@@ -2,6 +2,8 @@
 
 set -e
 
+cd "$(dirname "$0")"
+
 echo "Preparing shared folders and downloading configuration files..."
 
 # Create all necessary shared folders
@@ -19,24 +21,63 @@ mkdir -p shared/grafana/provisioning/dashboards
 mkdir -p shared/grafana/dashboards
 
 # Download Tempo configuration
-curl -sSL -o shared/tempo/tempo.yml https://raw.githubusercontent.com/aussiearef/grafana-udemy/main/tempo/tempo.yml
+if [[ -f ../tempo/tempo.yml ]]; then
+    cp ../tempo/tempo.yml shared/tempo/tempo.yml
+else
+    curl -sSL -o shared/tempo/tempo.yml https://raw.githubusercontent.com/aussiearef/grafana-udemy/main/tempo/tempo.yml
+fi
 
 # Download Prometheus configuration
-curl -sSL -o shared/prometheus/prometheus.yml https://raw.githubusercontent.com/aussiearef/grafana-udemy/main/prometheus/prometheus.yml
+if [[ -f ../prometheus/prometheus.yml ]]; then
+    cp ../prometheus/prometheus.yml shared/prometheus/prometheus.yml
+else
+    curl -sSL -o shared/prometheus/prometheus.yml https://raw.githubusercontent.com/aussiearef/grafana-udemy/main/prometheus/prometheus.yml
+fi
+
+# Prometheus config references these rule files; create no-op defaults so Prometheus starts cleanly.
+mkdir -p shared/prometheus/rule
+printf "groups: []\n" > shared/prometheus/rule/alerts.yml
+printf "groups: []\n" > shared/prometheus/rule/recording_rule.yml
 
 # Download Alloy configuration
-curl -sSL -o shared/alloy/config.alloy https://raw.githubusercontent.com/aussiearef/grafana-udemy/main/alloy/config.alloy
+if [[ -f ../alloy/config.alloy ]]; then
+    cp ../alloy/config.alloy shared/alloy/config.alloy
+else
+    curl -sSL -o shared/alloy/config.alloy https://raw.githubusercontent.com/aussiearef/grafana-udemy/main/alloy/config.alloy
+fi
 
 # Download Promtail (for Loki) configuration
-curl -sSL -o shared/promtail/config.yml https://raw.githubusercontent.com/aussiearef/grafana-udemy/main/loki/config.yml
+if [[ -f ../loki/config.yml ]]; then
+    cp ../loki/config.yml shared/promtail/config.yml
+else
+    curl -sSL -o shared/promtail/config.yml https://raw.githubusercontent.com/aussiearef/grafana-udemy/main/loki/config.yml
+fi
 
 # Download Mimir configuration
-curl -sSL -o shared/mimir/config.yaml https://raw.githubusercontent.com/aussiearef/grafana-udemy/main/mimir/config.yaml
+if [[ -f ../mimir/config.yaml ]]; then
+    cp ../mimir/config.yaml shared/mimir/config.yaml
+else
+    curl -sSL -o shared/mimir/config.yaml https://raw.githubusercontent.com/aussiearef/grafana-udemy/main/mimir/config.yaml
+fi
 
 # Download Grafana dashboard and provisioning files
-curl -sSL -o shared/grafana/dashboards/ShoeHub_Dashboard.json https://raw.githubusercontent.com/aussiearef/grafana-udemy/main/grafana/ShoeHub_Dashboard.json
-curl -sSL -o shared/grafana/provisioning/dashboards/dashboards.yml https://raw.githubusercontent.com/aussiearef/grafana-udemy/main/grafana/dashboards.yml
-curl -sSL -o shared/grafana/provisioning/datasources/datasources.yml https://raw.githubusercontent.com/aussiearef/grafana-udemy/main/grafana/datasources.yml
+if [[ -f ../grafana/ShoeHub_Dashboard.json ]]; then
+    cp ../grafana/ShoeHub_Dashboard.json shared/grafana/dashboards/ShoeHub_Dashboard.json
+else
+    curl -sSL -o shared/grafana/dashboards/ShoeHub_Dashboard.json https://raw.githubusercontent.com/aussiearef/grafana-udemy/main/grafana/ShoeHub_Dashboard.json
+fi
+
+if [[ -f ../grafana/dashboards.yml ]]; then
+    cp ../grafana/dashboards.yml shared/grafana/provisioning/dashboards/dashboards.yml
+else
+    curl -sSL -o shared/grafana/provisioning/dashboards/dashboards.yml https://raw.githubusercontent.com/aussiearef/grafana-udemy/main/grafana/dashboards.yml
+fi
+
+if [[ -f ../grafana/datasources.yml ]]; then
+    cp ../grafana/datasources.yml shared/grafana/provisioning/datasources/datasources.yml
+else
+    curl -sSL -o shared/grafana/provisioning/datasources/datasources.yml https://raw.githubusercontent.com/aussiearef/grafana-udemy/main/grafana/datasources.yml
+fi
 
 # Create Tempo data folders if not exist
 mkdir -p tempo-data/traces
@@ -66,6 +107,4 @@ fi
 
 # Run the command
 $DOCKER_CMD -f docker-compose.yaml up -d
-
-
 
